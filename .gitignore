@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+
+# Build
+build/
+dist/
+
+# Environment
+.env
+.venv/
+.env.*
+
+# VSCode or IDEs
+.vscode/
+.idea/
+
+# Local URL input (user-provided)
+urls.txt
+downloads/

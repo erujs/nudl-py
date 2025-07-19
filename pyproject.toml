@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nudl-py"
+version = "0.1.0"
+description = "A python media downloader"
+authors = [{ name = "erujs" }]
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+
+dependencies = [
+    "yt-dlp",
+]
+
+[project.scripts]
+nudl-py = "nudl_py.main:main"
