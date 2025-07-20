@@ -11,7 +11,7 @@ You can install using `pipx` (recommended) or clone the repo directly:
 
 Option 1: Install with pipx
 ```bash
-pipx install git+https://github.com/your-username/nudl-py.git
+pipx install git+https://github.com/erujs/nudl-py.git
 nudl-py
 ```
 

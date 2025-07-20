@@ -1,5 +1,5 @@
 import os
-from nudl_py.downloader import download_video
+from nudl.downloader import download_video
 
 URLS_FILE = os.path.join(os.path.dirname(__file__), "..", "urls.txt")
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "downloads")

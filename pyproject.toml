@@ -9,11 +9,14 @@ description = "A python media downloader"
 authors = [{ name = "erujs" }]
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "MIT" }
+license = "MIT"
 
 dependencies = [
     "yt-dlp",
 ]
 
 [project.scripts]
-nudl-py = "nudl_py.main:main"
+nudl-py = "nudl.main:main"
+
+[tool.setuptools.packages.find]
+include = ["nudl"]
