@@ -13,10 +13,13 @@ license = "MIT"
 
 dependencies = [
     "yt-dlp",
+    "gallery-dl",
+    "selenium"
 ]
 
 [project.scripts]
 nudl-py = "nudl.main:main"
+nudl-login = "nudl.auth.manager:login_main"
 
 [tool.setuptools.packages.find]
 include = ["nudl"]
