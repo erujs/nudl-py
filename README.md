@@ -1,6 +1,6 @@
 # nudl-py
 
-A minimal yet powerful Python video downloader that supports links from most popular video and media platforms — all powered by yt_dlp.
+A minimal yet powerful Python media downloader that supports links from most popular media platforms.
 
 Built for personal use with a simple workflow:  
 just paste your URLs into a `urls.txt` file and run `nudl-py` from the command line.
@@ -34,7 +34,7 @@ On first run:
 ## 🔐 Downloading from Private/Logged-in URLs
 Some platforms (like Instagram or Facebook) require login cookies.
 
-To download from those:
+To download from those (in this example instagram):
 
 ```bash
 nudl-login instagram
@@ -45,6 +45,12 @@ After login, your cookies are saved to:
 
 ```bash
  ~/.nudl_cookies/instagram.txt
+```
+
+On Windows, this path will resolve to something like:
+
+```bash
+ C:\Users\YourUsername\.nudl_cookies\instagram.txt
 ```
 
 On future runs, nudl-py and gallery-dl will use this automatically.
