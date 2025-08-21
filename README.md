@@ -24,7 +24,7 @@ nudl-py
 ## 📥 Downloading Media
 On first run:
 
-- urls.txt will be created in the current directory.
+- urls.txt will be created in the current directory the command was executed.
 - Paste one media URL per line, save the file, then press Enter.
 - Files will be saved to the downloads/ folder.
 
@@ -44,16 +44,8 @@ This will open a browser window where you can log in.
 After login, your cookies are saved to:  
 
 ```bash
- ~/.nudl_cookies/instagram.txt
+ <directory-the-command-was-executed>/.nudl_cookies/instagram.txt
 ```
-
-On Windows, this path will resolve to something like:
-
-```bash
- C:\Users\YourUsername\.nudl_cookies\instagram.txt
-```
-
-On future runs, nudl-py and gallery-dl will use this automatically.
 
 ### 📝 Reddit Video Note  
 For Reddit, make sure to right-click the video and choose “Copy video address” — not just the post URL.  
