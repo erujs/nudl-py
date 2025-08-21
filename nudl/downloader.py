@@ -1,5 +1,3 @@
-# nudl/downloader.py
-
 import os
 import re
 import subprocess
@@ -7,10 +5,15 @@ import requests
 from urllib.parse import urlparse
 from yt_dlp import YoutubeDL
 
-def download_video(url: str, output_dir: str = "downloads"):
+
+def get_cookies_path(short_domain: str, cookies_dir: str) -> str:
+    """Return the cookie path inside the nudl-py-config/.nudl_cookies folder."""
+    return os.path.join(cookies_dir, f"{short_domain}.txt")
+
+
+def download_video(url: str, output_dir: str, cookies_dir: str):
     hostname = urlparse(url).netloc.lower()
     short_domain = hostname.replace("www.", "").split(".")[0]
-    cookies_path = os.path.expanduser(f"~/.nudl_cookies/{short_domain}.txt")
 
     ydl_opts = {
         "format": "best",
@@ -18,6 +21,7 @@ def download_video(url: str, output_dir: str = "downloads"):
         "merge_output_format": "mp4",
     }
 
+    cookies_path = get_cookies_path(short_domain, cookies_dir)
     if os.path.exists(cookies_path):
         ydl_opts["cookiefile"] = cookies_path
     else:
@@ -59,23 +63,21 @@ def download_image(url: str, output_dir: str = "downloads"):
     except Exception as e:
         print(f"❌ Failed to download image from {url}: {e}")
 
+
 def extract_code_from_url(url: str) -> str:
-    """
-    Extracts a unique code or ID from a URL, such as /p/ABC123/ => ABC123
-    """
     match = re.search(r"/(?:p|reel|photo|video)/([a-zA-Z0-9_-]+)", url)
     if not match:
-        # Fallback: extract last path segment if match fails
         path = urlparse(url).path.strip("/").split("/")
         return path[-1] if path else "media"
     return match.group(1)
 
-def download_with_gallery_dl(url: str, output_dir: str = "downloads"):
+
+def download_with_gallery_dl(url: str, output_dir: str, cookies_dir: str):
     try:
         hostname = urlparse(url).netloc.lower()
         short_domain = hostname.replace("www.", "").split(".")[0]
-        cookies_path = os.path.expanduser(f"~/.nudl_cookies/{short_domain}.txt")
 
+        cookies_path = get_cookies_path(short_domain, cookies_dir)
         if not os.path.exists(cookies_path):
             print(f"⚠️ No cookies found for {short_domain}. Skipping.")
             print(f"👉 This URL likely requires login. Please run:")
@@ -91,7 +93,7 @@ def download_with_gallery_dl(url: str, output_dir: str = "downloads"):
             f"--cookies={cookies_path}",
             "--filename", filename_template,
             "-d", output_dir,
-            url
+            url,
         ]
 
         subprocess.run(command, check=True)
@@ -101,5 +103,3 @@ def download_with_gallery_dl(url: str, output_dir: str = "downloads"):
         print("❌ gallery-dl is not installed. Please run: pip install gallery-dl")
     except subprocess.CalledProcessError as e:
         print(f"❌ gallery-dl failed with error: {e}")
-
-

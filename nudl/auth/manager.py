@@ -1,5 +1,3 @@
-# nudl/auth/manager.py
-
 import sys
 from nudl.auth.browser import login_and_save_cookies
 
