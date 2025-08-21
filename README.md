@@ -44,7 +44,7 @@ This will open a browser window where you can log in.
 After login, your cookies are saved to:  
 
 ```bash
- <directory-the-command-was-executed>/.nudl_cookies/instagram.txt
+ nudl-py-config/.nudl_cookies/instagram.txt
 ```
 
 ### 📝 Reddit Video Note  
