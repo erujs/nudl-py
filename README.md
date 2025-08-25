@@ -1,62 +1,83 @@
 # nudl-py
 
-A minimal yet powerful Python media downloader that supports links from most popular media platforms.
+Python Media Downloader ~ A Python-based CLI tool for downloading media from popular social media platforms.  
+This project was scaffolded using [cc-py](https://github.com/erujs/cc-py), a Cookiecutter template for building Python CLI applications.
 
-Built for personal use with a simple workflow:  
-just paste your URLs into a `urls.txt` file and run `nudl-py` from the command line.
+## Dependencies
 
-## 🚀 Usage
+Ensure you have the following dependencies installed (if you haven’t already):
+
+- **Python 3.8+** - required to develop and run the project
+- **pipx** (recommended) – for installing and running the generated CLI apps in isolated environments
+
+### Other dependencies will be installed automatically when you install this package
+
+- **yt-dlp** – used for downloading videos and audio from supported platforms (e.g., YouTube, Twitter, TikTok, etc.)
+- **gallery-dl** – used for downloading media from social platforms that require authentication or handle images better (e.g., Instagram posts, Facebook photos)
+- **selenium** - for automating browsers to fetch login cookies from accounts that require authentication
+
+## Installation
 
 You can install using `pipx` (recommended) or clone the repo directly:
 
 ### Option 1: Install with pipx
 ```bash
 pipx install git+https://github.com/erujs/nudl-py.git
-nudl-py
 ```
 
 ### Option 2: Clone the repo
 ```bash
 pip install -e .
-nudl-py
 ```
 
-## 📥 Downloading Media
-On first run:
-
-- A nudl-py-config/ folder will be created on the current directory the command was executed.
-- Open nudl-py-config/urls.txt then paste one media URL per line, save the file, then press Enter.
-- Files will be saved to the nudl-py-config/downloads/ folder.
-
-🎞️ Videos are downloaded using yt-dlp.  
-🖼️ Posts and images (e.g. Instagram, Facebook) use gallery-dl.  
-
-## 🔐 Downloading from Private/Logged-in URLs
-Some platforms (like Instagram or Facebook) require login cookies.
-
-To download from those (in this example instagram):
+## Usage
 
 ```bash
-nudl-login instagram
+nudl-py 
+# Run the main CLI to start the program.
+#
+# On first run, this will create a folder called `nudl-py-config`
+# in the directory where the command is executed. Inside it, you’ll find:
+#
+# - `downloads/` → the folder where downloaded media will be saved
+# - `urls.txt` → a text file where you can paste media URLs (one per line)
+#
+# The CLI will guide you through the process.
+# On subsequent runs, simply update `urls.txt` and your downloads
+# will appear in the `downloads/` folder.
 ```
 
-This will open a browser window where you can log in.  
-After login, your cookies are saved to nudl-py-config/.nudl_cookies/
+```bash
+nudl-login <social-media>
+# Authenticate and save login cookies for private or logged-in URLs.
+#
+# Example:
+#   nudl-login instagram
+#
+# Supported platforms: facebook, instagram
+#
+# Some platforms (like Instagram or Facebook) require login cookies
+# to access private or restricted media. Running this command will:
+# - Launch a browser window via Selenium
+# - Allow you to log in manually
+# - Save your cookies to `nudl-py-config/.nudl_cookies/`
+#
+# The CLI will guide you through the process.
+# Once cookies are saved, you can run `nudl-py` to download
+# private or logged-in content from the chosen platform.
+```
 
 ### 📝 Reddit Video Note  
-For Reddit, make sure to right-click the video and choose “Copy video address” — not just the post URL.  
-This ensures the downloader grabs the actual media file.  
+When downloading from Reddit, always copy the **direct video link**, not the post URL.  
 
 Example:  
-✅ Correct: https://packaged-media.redd.it/xyzabc123/pb/...  
-❌ Incorrect: https://www.reddit.com/r/.../comments/...  
+✅ Correct: `https://packaged-media.redd.it/xyzabc123/pb/...`  
+❌ Incorrect: `https://www.reddit.com/r/.../comments/...`  
 
-## 📦 Dependencies
-- yt_dlp
-- gallery-dl
-- selenium (used for login)
-- Python 3.8+
-Also ensure ffmpeg is installed for best media format support.
+To get the correct link, right-click the video and select **“Copy video address.”**  
 
 ## 🧾 License
 MIT — do whatever you want with it.
+
+✨ Happy coding!
+If you find this project useful, a ⭐ on the repo is always appreciated!
