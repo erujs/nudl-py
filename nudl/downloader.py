@@ -3,6 +3,7 @@ import re
 import subprocess
 import requests
 from urllib.parse import urlparse
+import glob
 from yt_dlp import YoutubeDL
 
 
@@ -72,6 +73,28 @@ def extract_code_from_url(url: str) -> str:
     return match.group(1)
 
 
+def rename_instagram_files(url: str, output_dir: str):
+    from urllib.parse import urlparse
+    import os, glob
+
+    parsed = urlparse(url)
+    path_parts = parsed.path.strip("/").split("/")
+    
+    # Extract the Instagram post ID
+    post_id = path_parts[path_parts.index("p") + 1] if "p" in path_parts else "instagram_post"
+    
+    # Recursive scan for all files in output_dir
+    for filepath in glob.glob(os.path.join(output_dir, "**", "*.*"), recursive=True):
+        dirname, fname = os.path.split(filepath)
+        name, ext = os.path.splitext(fname)
+        if name.startswith(post_id):
+            continue  # already correct
+        new_name = f"{post_id}_{name}{ext}"
+        new_path = os.path.join(dirname, new_name)
+        os.rename(filepath, new_path)
+        print(f"Renamed {fname} → {new_name}")
+
+
 def download_with_gallery_dl(url: str, output_dir: str, cookies_dir: str):
     try:
         hostname = urlparse(url).netloc.lower()
@@ -86,17 +109,21 @@ def download_with_gallery_dl(url: str, output_dir: str, cookies_dir: str):
             return
 
         post_code = extract_code_from_url(url)
-        filename_template = f"{post_code}.{{extension}}"
 
         command = [
             "gallery-dl",
             f"--cookies={cookies_path}",
-            "--filename", filename_template,
+            "--filename", "{id}_{num}.{extension}",
             "-d", output_dir,
             url,
         ]
 
         subprocess.run(command, check=True)
+
+        # Only rename files if this is an Instagram URL
+        if "instagram.com" in url:
+            rename_instagram_files(url, output_dir)
+
         print(f"🖼️ gallery-dl finished downloading from {url}")
 
     except FileNotFoundError:

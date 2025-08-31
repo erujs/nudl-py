@@ -22,4 +22,4 @@ nudl-py = "nudl.main:main"
 nudl-login = "nudl.auth.manager:login_main"
 
 [tool.setuptools.packages.find]
-include = ["nudl"]
+include = ["nudl*"]
