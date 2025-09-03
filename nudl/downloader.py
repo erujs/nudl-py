@@ -20,6 +20,10 @@ def download_video(url: str, output_dir: str, cookies_dir: str):
         "format": "best",
         "outtmpl": f"{output_dir}/%(title).80s~%(id)s.%(ext)s",
         "merge_output_format": "mp4",
+        "writethumbnail": True,
+        "writeinfojson": True,
+        "addmetadata": True,
+        "embedthumbnail": True,
     }
 
     cookies_path = get_cookies_path(short_domain, cookies_dir)
