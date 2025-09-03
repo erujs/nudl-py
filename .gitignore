@@ -17,6 +17,4 @@ dist/
 .vscode/
 .idea/
 
-# Local URL input (user-provided)
-urls.txt
-downloads/
+nudl-py-config
