@@ -14,7 +14,6 @@ license = "MIT"
 dependencies = [
     "yt-dlp",
     "gallery-dl",
-    "selenium"
 ]
 
 [project.scripts]

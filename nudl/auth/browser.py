@@ -1,48 +1,135 @@
 import os
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from nudl.config import COOKIES_DIR
+import re
+import subprocess
+import requests
+from urllib.parse import urlparse
+import glob
+from yt_dlp import YoutubeDL
 
 
-def login_and_save_cookies(site: str, login_url: str):
-    options = Options()
-    options.add_argument("--start-maximized")
-    driver = webdriver.Chrome(options=options)
+def get_cookies_path(short_domain: str, cookies_dir: str) -> str:
+    """Return the cookie path inside the nudl-py-config/.nudl_cookies folder."""
+    print(os.path.join(cookies_dir, f"{short_domain}.txt"))
+    return os.path.join(cookies_dir, f"{short_domain}.txt")
 
+
+def download_video(url: str, output_dir: str, cookies_dir: str):
+    hostname = urlparse(url).netloc.lower()
+    short_domain = hostname.replace("www.", "").split(".")[0]
+
+    ydl_opts = {
+        "format": "best",
+        "outtmpl": f"{output_dir}/%(title).80s~%(id)s.%(ext)s",
+        "merge_output_format": "mp4",
+        "addmetadata": True,
+        "embedthumbnail": True,
+    }
+
+    cookies_path = get_cookies_path(short_domain, cookies_dir)
+    if os.path.exists(cookies_path):
+        ydl_opts["cookiefile"] = cookies_path
+    else:
+        print(f"⚠️ No cookies found for {short_domain}. Proceeding without cookies.")
+        print(f"👉 If login is required, run: nudl-login {short_domain}")
+        print(f"(Expected cookies at: {cookies_path})\n")
+
+    with YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(url, download=True)
+            original_filename = ydl.prepare_filename(info)
+
+            if "packaged-media.redd.it" in url:
+                clean_filename = original_filename.split("?")[0]
+                if clean_filename != original_filename:
+                    os.rename(original_filename, clean_filename)
+                    print(f"✅ Reddit video renamed to: {clean_filename}")
+                else:
+                    print(f"✅ Reddit video saved as: {original_filename}")
+            else:
+                print(f"✅ Downloaded: {original_filename}")
+        except Exception as e:
+            print(f"❌ Failed to download video from {url}: {e}")
+
+
+def download_image(url: str, output_dir: str = "downloads"):
     try:
-        driver.get(login_url)
-        print("🔐 Please complete the login in the browser window.")
-        print("⚠️ Do NOT close the browser manually.")
-        print("   Once you finish logging in, return here and press Enter.")
-        print("   The browser will close automatically after that.")
-        input("⏸️ Press Enter here AFTER you've successfully logged in...")
+        response = requests.get(url, stream=True, timeout=10)
+        response.raise_for_status()
 
-        cookies = driver.get_cookies()
-        driver.quit()
+        filename = os.path.basename(url.split("?")[0])
+        filepath = os.path.join(output_dir, filename)
 
-        save_cookies_as_netscape(site, cookies)
+        with open(filepath, "wb") as f:
+            for chunk in response.iter_content(1024):
+                f.write(chunk)
+
+        print(f"🖼️ Downloaded image: {filepath}")
     except Exception as e:
-        driver.quit()
-        print(f"❌ Failed to capture cookies for {site}: {e}")
+        print(f"❌ Failed to download image from {url}: {e}")
 
 
-def save_cookies_as_netscape(site: str, cookies: list):
-    os.makedirs(COOKIES_DIR, exist_ok=True)
-    path = os.path.join(COOKIES_DIR, f"{site}.txt")
+def extract_code_from_url(url: str) -> str:
+    match = re.search(r"/(?:p|reel|photo|video)/([a-zA-Z0-9_-]+)", url)
+    if not match:
+        path = urlparse(url).path.strip("/").split("/")
+        return path[-1] if path else "media"
+    return match.group(1)
 
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("# Netscape HTTP Cookie File\n")
-        for cookie in cookies:
-            domain = cookie["domain"]
-            include_subdomains = "TRUE" if domain.startswith(".") else "FALSE"
-            path_value = cookie.get("path", "/")
-            secure = "TRUE" if cookie.get("secure", False) else "FALSE"
-            expiry = int(cookie.get("expiry", 0))
-            name = cookie["name"]
-            value = cookie["value"]
 
-            f.write(
-                f"{domain}\t{include_subdomains}\t{path_value}\t{secure}\t{expiry}\t{name}\t{value}\n"
-            )
+def rename_instagram_files(url: str, output_dir: str):
+    from urllib.parse import urlparse
+    import os, glob
 
-    print(f"✅ Saved cookies for {site} to: {path}")
+    parsed = urlparse(url)
+    path_parts = parsed.path.strip("/").split("/")
+    
+    # Extract the Instagram post ID
+    post_id = path_parts[path_parts.index("p") + 1] if "p" in path_parts else "instagram_post"
+    
+    # Recursive scan for all files in output_dir
+    for filepath in glob.glob(os.path.join(output_dir, "**", "*.*"), recursive=True):
+        dirname, fname = os.path.split(filepath)
+        name, ext = os.path.splitext(fname)
+        if name.startswith(post_id):
+            continue  # already correct
+        new_name = f"{post_id}_{name}{ext}"
+        new_path = os.path.join(dirname, new_name)
+        os.rename(filepath, new_path)
+        print(f"Renamed {fname} → {new_name}")
+
+
+def download_with_gallery_dl(url: str, output_dir: str, cookies_dir: str):
+    try:
+        hostname = urlparse(url).netloc.lower()
+        short_domain = hostname.replace("www.", "").split(".")[0]
+
+        cookies_path = get_cookies_path(short_domain, cookies_dir)
+        if not os.path.exists(cookies_path):
+            print(f"⚠️ No cookies found for {short_domain}. Skipping.")
+            print(f"👉 This URL likely requires login. Please run:")
+            print(f"   nudl-login {short_domain}")
+            print(f"(Expected cookies at: {cookies_path})\n")
+            return
+
+        post_code = extract_code_from_url(url)
+
+        command = [
+            "gallery-dl",
+            f"--cookies={cookies_path}",
+            "--filename", "{id}_{num}.{extension}",
+            "-d", output_dir,
+            url,
+        ]
+
+        subprocess.run(command, check=True)
+
+        # Only rename files if this is an Instagram URL
+        if "instagram.com" in url:
+            rename_instagram_files(url, output_dir)
+
+        print(f"🖼️ gallery-dl finished downloading from {url}")
+
+    except FileNotFoundError:
+        print("❌ gallery-dl is not installed. Please run: pip install gallery-dl")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ gallery-dl failed with error: {e}")

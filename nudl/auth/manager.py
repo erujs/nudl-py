@@ -4,6 +4,7 @@ from nudl.auth.browser import login_and_save_cookies
 SUPPORTED_SITES = {
     "instagram": "https://www.instagram.com/accounts/login/",
     "facebook": "https://www.facebook.com/login",
+    "tiktok": "https://www.tiktok.com/login"
 }
 
 def login_main():

@@ -16,13 +16,27 @@ def download_video(url: str, output_dir: str, cookies_dir: str):
     hostname = urlparse(url).netloc.lower()
     short_domain = hostname.replace("www.", "").split(".")[0]
 
+    # Base options
     ydl_opts = {
         "format": "best",
         "outtmpl": f"{output_dir}/%(title).80s~%(id)s.%(ext)s",
         "merge_output_format": "mp4",
         "addmetadata": True,
         "embedthumbnail": True,
+        "allow_unplayable_formats": True, 
     }
+
+    # Reddit-specific format handling
+    if "reddit.com" in hostname:
+        # For Reddit, we need to ensure both video and audio are merged
+        ydl_opts["format"] = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+        # Ensure ffmpeg merges them properly
+        ydl_opts["postprocessors"] = [{
+            'key': 'FFmpegVideoConvertor',
+            'preferedformat': 'mp4',
+        }]
+    else:
+        ydl_opts["format"] = "best"
 
     cookies_path = get_cookies_path(short_domain, cookies_dir)
     if os.path.exists(cookies_path):
@@ -37,17 +51,21 @@ def download_video(url: str, output_dir: str, cookies_dir: str):
             info = ydl.extract_info(url, download=True)
             original_filename = ydl.prepare_filename(info)
 
-            if "packaged-media.redd.it" in url:
+            # Handle Reddit video renaming if needed
+            if "reddit.com" in url or "redd.it" in url:
+                # Clean up any query parameters from filename
                 clean_filename = original_filename.split("?")[0]
-                if clean_filename != original_filename:
+                if clean_filename != original_filename and os.path.exists(original_filename):
                     os.rename(original_filename, clean_filename)
-                    print(f"✅ Reddit video renamed to: {clean_filename}")
+                    print(f"✅ Reddit video downloaded: {clean_filename}")
                 else:
-                    print(f"✅ Reddit video saved as: {original_filename}")
+                    print(f"✅ Reddit video downloaded: {original_filename}")
             else:
                 print(f"✅ Downloaded: {original_filename}")
+                
         except Exception as e:
             print(f"❌ Failed to download video from {url}: {e}")
+            print(f"💡 Make sure ffmpeg is installed for Reddit videos")
 
 
 def download_image(url: str, output_dir: str = "downloads"):
@@ -76,9 +94,6 @@ def extract_code_from_url(url: str) -> str:
 
 
 def rename_instagram_files(url: str, output_dir: str):
-    from urllib.parse import urlparse
-    import os, glob
-
     parsed = urlparse(url)
     path_parts = parsed.path.strip("/").split("/")
     

@@ -14,8 +14,7 @@ Ensure you have the following dependencies installed (if you haven’t already):
 ### Other dependencies will be installed automatically when you install this package
 
 - **yt-dlp** – used for downloading videos and audio from supported platforms (e.g., YouTube, Twitter, TikTok, etc.)
-- **gallery-dl** – used for downloading media from social platforms that require authentication or handle images better (e.g., Instagram posts, Facebook photos)
-- **selenium** - for automating browsers to fetch login cookies from accounts that require authentication
+- **gallery-dl** – used for downloading media from social platforms that require authentication or handle images better (e.g., Instagram posts, Facebook photos, reddit)
 
 ## Installation
 
@@ -53,29 +52,21 @@ nudl-login <social-media>
 # Authenticate and save login cookies for private or logged-in URLs.
 #
 # Example:
-#   nudl-login instagram
+#   nudl-login tiktok
 #
-# Supported platforms: facebook, instagram
+# Supported platforms: facebook, instagram, tiktok
 #
-# Some platforms (like Instagram or Facebook) require login cookies
+# Some platforms require login cookies
 # to access private or restricted media. Running this command will:
-# - Launch a browser window via Selenium
+# - Launch a login url from your default browser
 # - Allow you to log in manually
-# - Save your cookies to `nudl-py-config/.nudl_cookies/`
+# - Will prompt you to export your cookies using browser extension (e.g., Get cookies.txt LOCALLY)
+# - Then you will need to Save your cookies to `nudl-py-config/.nudl_cookies/`
 #
 # The CLI will guide you through the process.
 # Once cookies are saved, you can run `nudl-py` to download
 # private or logged-in content from the chosen platform.
 ```
-
-### 📝 Reddit Video Note  
-When downloading from Reddit, always copy the **direct video link**, not the post URL.  
-
-Example:  
-✅ Correct: `https://packaged-media.redd.it/xyzabc123/pb/...`  
-❌ Incorrect: `https://www.reddit.com/r/.../comments/...`  
-
-To get the correct link, right-click the video and select **“Copy video address.”**  
 
 ## 🧾 License
 MIT — do whatever you want with it.

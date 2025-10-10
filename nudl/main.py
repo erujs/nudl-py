@@ -24,6 +24,8 @@ def should_use_gallery_dl(url: str) -> bool:
         return True
     if "facebook.com" in hostname and "/photo" in path:
         return True
+    if "reddit.com" in hostname:
+        return True
     return False
 
 
