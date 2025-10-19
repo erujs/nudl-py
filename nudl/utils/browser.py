@@ -26,7 +26,7 @@ def open_supported_site(site: str) -> bool:
     print("\nNext steps:")
     print("  1. Log in to the site in your browser")
     print("  2. Export your cookies using a browser extension (e.g., 'Get cookies.txt LOCALLY')")
-    print(f"  3. Save the cookies file to the expected location for {site}")
+    print(f"  3. Save the {site} cookies file to nudl-py-config/.nudl_cookies/")
     return True
 
 def login_main():

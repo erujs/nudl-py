@@ -10,11 +10,11 @@ Ensure you have the following dependencies installed (if you haven’t already):
 - **Python 3.8+** - required to develop and run the project
 - **pipx** (recommended) – for installing and running the generated CLI apps in isolated environments
 - **ffmpeg** - required by yt-dlp to merge streams, embed thumbnails, and add metadata
-- **gallery-dl** – used for downloading media from social platforms that require authentication or handle images better (e.g., Instagram posts, Facebook photos, reddit)
 
 ### Other dependencies will be installed automatically when you install this package
 
-- **yt-dlp** – used for downloading videos and audio from supported platforms (e.g., YouTube, Twitter, TikTok, etc.)
+- **yt-dlp** – used for downloading videos from supported platforms (e.g., YouTube, TikTok, etc.)
+- **gallery-dl** – used for downloading images from ssupported platforms (e.g., Instagram posts, Facebook photos, Reddit)
 
 ## Installation
 
@@ -43,8 +43,8 @@ nudl-py
 # - `urls.txt` → a text file where you can paste media URLs (one per line)
 #
 # The CLI will guide you through the process.
-# On subsequent runs, simply update `urls.txt` and your downloads
-# will appear in the `downloads/` folder.
+# On subsequent runs, simply update `urls.txt` and execute nudl-py again.
+# Your downloads will appear in the `downloads/` folder.
 ```
 
 ```bash

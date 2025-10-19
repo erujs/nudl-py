@@ -1,7 +1,7 @@
 import os
-import re
 import subprocess
 import requests
+import sys
 from urllib.parse import urlparse
 from yt_dlp import YoutubeDL
 from nudl.utils.extractors import extract_post_id
@@ -123,7 +123,7 @@ def download_with_gallery_dl(url: str, output_dir: str, cookies_dir: str):
 
         # gallery-dl base options
         command = [
-            "gallery-dl",
+            sys.executable, "-m", "gallery_dl",
             f"--cookies={cookies_path}",
             "-d", post_dir,
             url,
