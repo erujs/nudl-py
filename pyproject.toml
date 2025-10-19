@@ -18,7 +18,8 @@ dependencies = [
 
 [project.scripts]
 nudl-py = "nudl.main:main"
-nudl-login = "nudl.auth.manager:login_main"
+nudl-login = "nudl.utils.browser:login_main"
 
-[tool.setuptools]
-packages = ["nudl", "nudl.auth"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nudl*"]

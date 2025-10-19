@@ -10,11 +10,11 @@ Ensure you have the following dependencies installed (if you haven’t already):
 - **Python 3.8+** - required to develop and run the project
 - **pipx** (recommended) – for installing and running the generated CLI apps in isolated environments
 - **ffmpeg** - required by yt-dlp to merge streams, embed thumbnails, and add metadata
+- **gallery-dl** – used for downloading media from social platforms that require authentication or handle images better (e.g., Instagram posts, Facebook photos, reddit)
 
 ### Other dependencies will be installed automatically when you install this package
 
 - **yt-dlp** – used for downloading videos and audio from supported platforms (e.g., YouTube, Twitter, TikTok, etc.)
-- **gallery-dl** – used for downloading media from social platforms that require authentication or handle images better (e.g., Instagram posts, Facebook photos, reddit)
 
 ## Installation
 

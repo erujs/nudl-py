@@ -3,69 +3,48 @@ import re
 import subprocess
 import requests
 from urllib.parse import urlparse
-import glob
 from yt_dlp import YoutubeDL
+from nudl.utils.extractors import extract_post_id
 
+"""
+Supported URL patterns and which downloader handles them:
 
-def get_cookies_path(short_domain: str, cookies_dir: str) -> str:
-    """Return the cookie path inside the nudl-py-config/.nudl_cookies folder."""
-    return os.path.join(cookies_dir, f"{short_domain}.txt")
+───────────────────────────────────────────────
+Instagram:
+  /p/<post_id>  →  gallery-dl
+    e.g. https://www.instagram.com/p/<post_id>?img_index=1
+         https://www.instagram.com/p/<post_id>/
+  /reel/<post_id>  →  yt-dlp
+    e.g. https://www.instagram.com/reel/<post_id>/
 
+───────────────────────────────────────────────
+Facebook:
+  /photo/?fbid=<post_id>  →  gallery-dl
+    e.g. https://www.facebook.com/photo/?fbid=<post_id>
+  /watch?v=<post_id>  →  yt-dlp
+    e.g. https://www.facebook.com/watch?v=<post_id>
+  /reel/<post_id>  →  yt-dlp
+    e.g. https://www.facebook.com/reel/<post_id>
 
-def download_video(url: str, output_dir: str, cookies_dir: str):
-    hostname = urlparse(url).netloc.lower()
-    short_domain = hostname.replace("www.", "").split(".")[0]
+───────────────────────────────────────────────
+TikTok:
+  /video/<post_id>  →  yt-dlp
+    e.g. https://www.tiktok.com/@username/video/<post_id>
 
-    # Base options
-    ydl_opts = {
-        "format": "best",
-        "outtmpl": f"{output_dir}/%(title).80s~%(id)s.%(ext)s",
-        "merge_output_format": "mp4",
-        "addmetadata": True,
-        "embedthumbnail": True,
-        "allow_unplayable_formats": True, 
-    }
+───────────────────────────────────────────────
+YouTube:
+  /watch?v=<post_id>  →  yt-dlp
+    e.g. https://www.youtube.com/watch?v=<post_id>
+  /shorts/<post_id>  →  yt-dlp
+    e.g. https://www.youtube.com/shorts/<post_id>
 
-    # Reddit-specific format handling
-    if "reddit.com" in hostname:
-        # For Reddit, we need to ensure both video and audio are merged
-        ydl_opts["format"] = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
-        # Ensure ffmpeg merges them properly
-        ydl_opts["postprocessors"] = [{
-            'key': 'FFmpegVideoConvertor',
-            'preferedformat': 'mp4',
-        }]
-    else:
-        ydl_opts["format"] = "best"
+───────────────────────────────────────────────
+Reddit:
+  /comments/<post_id>  →  gallery-dl
+    e.g. https://www.reddit.com/r/<subreddit>/comments/<post_id>
 
-    cookies_path = get_cookies_path(short_domain, cookies_dir)
-    if os.path.exists(cookies_path):
-        ydl_opts["cookiefile"] = cookies_path
-    else:
-        print(f"⚠️ No cookies found for {short_domain}. Proceeding without cookies.")
-        print(f"👉 If login is required, run: nudl-login {short_domain}")
-        print(f"(Expected cookies at: {cookies_path})\n")
-
-    with YoutubeDL(ydl_opts) as ydl:
-        try:
-            info = ydl.extract_info(url, download=True)
-            original_filename = ydl.prepare_filename(info)
-
-            # Handle Reddit video renaming if needed
-            if "reddit.com" in url or "redd.it" in url:
-                # Clean up any query parameters from filename
-                clean_filename = original_filename.split("?")[0]
-                if clean_filename != original_filename and os.path.exists(original_filename):
-                    os.rename(original_filename, clean_filename)
-                    print(f"✅ Reddit video downloaded: {clean_filename}")
-                else:
-                    print(f"✅ Reddit video downloaded: {original_filename}")
-            else:
-                print(f"✅ Downloaded: {original_filename}")
-                
-        except Exception as e:
-            print(f"❌ Failed to download video from {url}: {e}")
-            print(f"💡 Make sure ffmpeg is installed for Reddit videos")
+───────────────────────────────────────────────
+"""
 
 
 def download_image(url: str, output_dir: str = "downloads"):
@@ -80,36 +59,49 @@ def download_image(url: str, output_dir: str = "downloads"):
             for chunk in response.iter_content(1024):
                 f.write(chunk)
 
-        print(f"🖼️ Downloaded image: {filepath}")
+        print(f"Downloaded image: {filepath}")
     except Exception as e:
-        print(f"❌ Failed to download image from {url}: {e}")
+        print(f"ERROR: Failed to download image from {url}: {e}", file=sys.stderr)
 
 
-def extract_code_from_url(url: str) -> str:
-    match = re.search(r"/(?:p|reel|photo|video)/([a-zA-Z0-9_-]+)", url)
-    if not match:
-        path = urlparse(url).path.strip("/").split("/")
-        return path[-1] if path else "media"
-    return match.group(1)
+def download_with_yt_dlp(url: str, output_dir: str, cookies_dir: str):
+    hostname = urlparse(url).netloc.lower()
+    short_domain = hostname.replace("www.", "").split(".")[0]
 
+    # yt-dlp base options
+    # Uncomment the extra parameters to hide yt-dlp logging outputs
+    ydl_opts = {
+        "format": "best",
+        "outtmpl": f"{output_dir}/%(id)s.%(ext)s",
+        # "quiet": True,
+        # "no_warnings": True, 
+        "merge_output_format": "mp4",
+        "addmetadata": True,
+        "embedthumbnail": True,
+        "allow_unplayable_formats": True,
+    }
 
-def rename_instagram_files(url: str, output_dir: str):
-    parsed = urlparse(url)
-    path_parts = parsed.path.strip("/").split("/")
-    
-    # Extract the Instagram post ID
-    post_id = path_parts[path_parts.index("p") + 1] if "p" in path_parts else "instagram_post"
-    
-    # Recursive scan for all files in output_dir
-    for filepath in glob.glob(os.path.join(output_dir, "**", "*.*"), recursive=True):
-        dirname, fname = os.path.split(filepath)
-        name, ext = os.path.splitext(fname)
-        if name.startswith(post_id):
-            continue  # already correct
-        new_name = f"{post_id}_{name}{ext}"
-        new_path = os.path.join(dirname, new_name)
-        os.rename(filepath, new_path)
-        print(f"Renamed {fname} → {new_name}")
+    cookies_path = os.path.join(cookies_dir, f"{short_domain}.txt")
+    if os.path.exists(cookies_path):
+        ydl_opts["cookiefile"] = cookies_path
+    else:
+        print(f"WARNING: No cookies found for {short_domain}. Proceeding without cookies.")
+        print(f"If login is required, run: nudl-login {short_domain}")
+        print(f"Expected cookies at: {cookies_path}")
+
+    post_id = extract_post_id(url)
+
+    # Run yt-dlp
+    with YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(url, download=True)
+            filepath = ydl.prepare_filename(info)
+            print(f"File downloaded for {post_id}: {filepath}")
+            print(f"yt-dlp finished downloading from {url}")
+
+                
+        except Exception as e:
+            print(f"ERROR: yt-dlp failed to download from {url}: {e}", file=sys.stderr)
 
 
 def download_with_gallery_dl(url: str, output_dir: str, cookies_dir: str):
@@ -117,33 +109,67 @@ def download_with_gallery_dl(url: str, output_dir: str, cookies_dir: str):
         hostname = urlparse(url).netloc.lower()
         short_domain = hostname.replace("www.", "").split(".")[0]
 
-        cookies_path = get_cookies_path(short_domain, cookies_dir)
+        cookies_path = os.path.join(cookies_dir, f"{short_domain}.txt")
         if not os.path.exists(cookies_path):
-            print(f"⚠️ No cookies found for {short_domain}. Skipping.")
-            print(f"👉 This URL likely requires login. Please run:")
-            print(f"   nudl-login {short_domain}")
-            print(f"(Expected cookies at: {cookies_path})\n")
+            print(f"WARNING: No cookies found for {short_domain}. Skipping.")
+            print(f"This URL likely requires login. Please run:")
+            print(f"  nudl-login {short_domain}")
+            print(f"Expected cookies at: {cookies_path}")
             return
 
-        post_code = extract_code_from_url(url)
+        post_id = extract_post_id(url)
+        post_dir = os.path.join(output_dir, post_id)
+        os.makedirs(post_dir, exist_ok=True)
 
+        # gallery-dl base options
         command = [
             "gallery-dl",
             f"--cookies={cookies_path}",
-            "--filename", "{id}_{num}.{extension}",
-            "-d", output_dir,
+            "-d", post_dir,
             url,
         ]
+        
+        # Run gallery-dl
+        # Uncomment the extra parameters to hide gallery-dl logging outputs
+        subprocess.run(
+            command, check=True,
+            # stdout=subprocess.PIPE,
+            # stderr=subprocess.DEVNULL
+        )
 
-        subprocess.run(command, check=True)
+        # Gather downloaded files (optimized: use os.scandir instead of glob)
+        all_files = []
+        for root, _, files in os.walk(post_dir):
+            for file in files:
+                all_files.append(os.path.join(root, file))
+        
+        file_count = len(all_files)
+        
+        print(f"Files downloaded for {post_id} ({file_count}):")
+        for filepath in all_files:
+            print(f"  {filepath}")
 
-        # Only rename files if this is an Instagram URL
-        if "instagram.com" in url:
-            rename_instagram_files(url, output_dir)
+        # Rename only for Instagram and Reddit
+        should_rename = "instagram" in hostname or "reddit" in hostname
+        
+        if should_rename and file_count > 0:
+            if file_count == 1:
+                old_path = all_files[0]
+                ext = os.path.splitext(old_path)[1]
+                new_path = os.path.join(os.path.dirname(old_path), f"{post_id}{ext}")
+                os.rename(old_path, new_path)
+                print(f"Renamed single file -> {post_id}{ext}")
+            else:
+                for i, old_path in enumerate(sorted(all_files), start=1):
+                    ext = os.path.splitext(old_path)[1]
+                    new_path = os.path.join(os.path.dirname(old_path), f"{i}_{post_id}{ext}")
+                    os.rename(old_path, new_path)
+                print(f"Renamed {file_count} files with index + post_id")
+        elif not should_rename:
+            print(f"Keeping original filenames")
 
-        print(f"🖼️ gallery-dl finished downloading from {url}")
+        print(f"gallery-dl finished downloading from {url}")
 
-    except FileNotFoundError:
-        print("❌ gallery-dl is not installed. Please run: pip install gallery-dl")
-    except subprocess.CalledProcessError as e:
-        print(f"❌ gallery-dl failed with error: {e}")
+    except Exception as e:
+        print(f"ERROR: gallery-dl failed to download from {url}: {e}", file=sys.stderr)
+

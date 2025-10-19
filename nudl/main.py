@@ -1,6 +1,6 @@
 import os
 from urllib.parse import urlparse
-from nudl.downloader import download_video, download_image, download_with_gallery_dl
+from nudl.downloader import download_image, download_with_yt_dlp, download_with_gallery_dl
 from nudl.config import CONFIG_DIR, URLS_FILE, OUTPUT_DIR, COOKIES_DIR, ensure_structure
 
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff")
@@ -34,20 +34,17 @@ def main():
 
     urls = read_urls(URLS_FILE)
     if not urls:
-        print("⚠️ No valid URLs found in urls.txt.")
+        print("WARNING: No valid URLs found in urls.txt")
         return
 
     for url in urls:
-        print(f"\n⬇️ Downloading: {url}")
+        print(f"\nDOWNLOADING: {url}\n")
         if is_direct_image_url(url):
             download_image(url, OUTPUT_DIR)
         elif should_use_gallery_dl(url):
             download_with_gallery_dl(url, OUTPUT_DIR, COOKIES_DIR)
         else:
-            download_video(url, OUTPUT_DIR, COOKIES_DIR)
-
-    print(f"\n✅ Done. Processed {len(urls)} item(s).")
-
+            download_with_yt_dlp(url, OUTPUT_DIR, COOKIES_DIR)
 
 if __name__ == "__main__":
     main()
