@@ -22,7 +22,7 @@ def should_use_gallery_dl(url: str) -> bool:
 
     if "instagram.com" in hostname and path.startswith("/p/"):
         return True
-    if "facebook.com" in hostname and "/photo" in path:
+    if "facebook.com" in hostname and ("/photo" in path or "/posts" in path):
         return True
     if "reddit.com" in hostname:
         return True

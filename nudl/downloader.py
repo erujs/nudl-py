@@ -21,6 +21,8 @@ Instagram:
 Facebook:
   /photo/?fbid=<post_id>  →  gallery-dl
     e.g. https://www.facebook.com/photo/?fbid=<post_id>
+  /posts/<post_id>
+    e.g. https://www.facebook.com/posts/<post_id>
   /watch?v=<post_id>  →  yt-dlp
     e.g. https://www.facebook.com/watch?v=<post_id>
   /reel/<post_id>  →  yt-dlp
