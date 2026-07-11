@@ -1,0 +1,27 @@
+[project]
+name = "nudl-py"
+version = "0.1.0"
+description = ""
+requires-python = ">=3.10"
+dependencies = [
+    "yt-dlp>=2026.07.04",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+nudl_py = "nudl_py.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nudl_py*"]
