@@ -9,7 +9,8 @@ SUPPORTED_PLATFORMS = {
     "tiktok.com": "TT",
     "reddit.com": "RD",
     "instagram.com": "IG",
-    "facebook.com": "FB"
+    "facebook.com": "FB",
+    "fb.watch": "FB"
 }
 
 def identify_domain(url: str) -> str | None:

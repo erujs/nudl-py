@@ -26,6 +26,9 @@ def download_video(url: str):
         
         'quiet': False,
         'no_warnings': True,
+
+        # Extracts active session tokens from your desktop browser.
+        'cookiesfrombrowser': ('brave', 'firefox'),
     }
     
     try:
