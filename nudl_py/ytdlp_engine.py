@@ -7,36 +7,28 @@ import yt_dlp
 DOWNLOAD_DIR = "downloads"
 
 def download_video(url: str):
-    """
-    Downloads media using yt-dlp core. 
-    Saves the file into the downloads directory named after the content ID.
-    """
-    # Create the downloads directory if it doesn't exist yet
     if not os.path.exists(DOWNLOAD_DIR):
-        print(f"    [Engine] Creating download directory: '{DOWNLOAD_DIR}/'...")
         os.makedirs(DOWNLOAD_DIR)
 
-    print(f"    [Engine] Extracting stream data and initiating download...")
-    
-    ydl_opts = {
+    base_opts = {
         'format': 'bestvideo+bestaudio/best',
-        
-        # This forces yt-dlp to save files as 'downloads/ID.ext'
         'outtmpl': os.path.join(DOWNLOAD_DIR, '%(id)s.%(ext)s'),
-        
         'quiet': False,
         'no_warnings': True,
-
-        # Extracts active session tokens from your desktop browser.
-        'cookiesfrombrowser': ('brave', 'firefox'),
     }
-    
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-        print(f"    [Engine] Download completed successfully!")
-        
-    except yt_dlp.utils.DownloadError as de:
-        print(f"    [!] [Engine] Download failed (Content might be private, deleted, or blocked): {de}")
-    except Exception as e:
-        print(f"    [!] [Engine] Unexpected error: {e}")
+
+    for browser in ('firefox', 'brave'):
+        ydl_opts = {**base_opts, 'cookiesfrombrowser': (browser,)}
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+            print(f"    [Engine] Download completed successfully using {browser} cookies!")
+            return
+        except yt_dlp.utils.DownloadError as de:
+            print(f"    [!] [Engine] {browser} cookies failed, trying next... ({de})")
+            continue
+        except Exception as e:
+            print(f"    [!] [Engine] Unexpected error: {e}")
+            return
+
+    print("    [!] [Engine] All cookie sources failed.")
