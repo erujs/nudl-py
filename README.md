@@ -44,7 +44,12 @@ nudl_py
 nudl-py/
 ├── nudl_py/
 │   ├── __init__.py
-│   └── main.py
+│   ├── main.py
+│   ├── domain_checker.py
+│   ├── download_router.py
+│   ├── link_parser.py
+│   ├── platforms.py
+│   └── ytdlp_engine.py
 ├── tests/
 │   ├── __init__.py
 │   └── test_main.py
